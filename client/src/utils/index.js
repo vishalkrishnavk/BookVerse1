@@ -2,133 +2,134 @@ import axios from "axios";
 import { SetPosts } from "../redux/postSlice";
 //import { user } from "../assets/data";
 
-const API_URL ="http://localhost:8800";
+const API_URL = "http://localhost:8800";
 
-export const API =axios.create({
-  baseURL:API_URL,
-  responseType:"json",
+export const API = axios.create({
+  baseURL: API_URL,
+  responseType: "json",
 });
 
-export const apiRequest = async ({url,token,data,method})=>{
-  try{
-    const result =await API(url,{
-      method:method||"GET",
-      data:data,
-      headers:{
+export const apiRequest = async ({ url, token, data, method }) => {
+  try {
+    const result = await API(url, {
+      method: method || "GET",
+      data: data,
+      headers: {
         "Content-Type": "application/json",
-        Authorization : token ? 'Bearer ${token}':"",
+        Authorization: token ? `Bearer ${token}` : "",
       },
     });
     return result?.data;
-  }catch(error){
+  } catch (error) {
     const err = error.response.data;
     console.log(err);
-    return {status:err.success,message:err.message};
+    return { status: err.success, message: err.message };
   }
 };
 
-export const handleFileUpload =async(uploadFile)=>{
+export const handleFileUpload = async (uploadFile) => {
   const formData = new FormData();
-  formData.append("file",uploadFile);
-  formData.append("upload_preset","socialmedia");
-  try{
+  formData.append("file", uploadFile);
+  formData.append("upload_preset", "socialmedia");
+  try {
     const response = await axios.post(
-      `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUDINARY_ID}/image/upload/`,formData
-
+      `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUDINARY_ID}/image/upload/`,
+      formData
     );
     return response.data.secure_url;
-  } catch (error){
+  } catch (error) {
     console.log(error);
   }
 };
 
-export const fetchPosts=async(token,dispatch,uri,data)=>{
-    try{
-        const res = await apiRequest({
-          url:uri||"/posts",
-          token : token,
-          method:"POST",
-          data:data||{},
-        });
-          
-        dispatch(SetPosts(res?.data));
-        return;
-    }catch(error){
-        console.log(error)
-    }
+export const fetchPosts = async (token, dispatch, uri, data) => {
+  try {
+    const res = await apiRequest({
+      url: uri || "/posts",
+      token: token,
+      method: "POST",
+      data: data || {},
+    });
+
+    dispatch(SetPosts(res?.data));
+    return;
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-export const likePost = async ({uri,token}) => {
+export const likePost = async ({ uri, token }) => {
   try {
-    const res =await apiRequest({
-     url:uri,
-     token:token,
-     method:"POST",
+    const res = await apiRequest({
+      url: uri,
+      token: token,
+      method: "POST",
     });
     return res;
-  }catch(error){
+  } catch (error) {
     console.log(error);
   }
 };
 
-export const deletePost = async (id,token) => {
+export const deletePost = async (id, token) => {
   try {
-    const res =await apiRequest({
-     url: "/posts/" + id,
-     token: token,
-     method: "DELETE",
+    const res = await apiRequest({
+      url: "/posts/" + id,
+      token: token,
+      method: "DELETE",
     });
     return;
-  }catch(error){
+  } catch (error) {
     console.log(error);
   }
 };
 
-export const getUserInfo = async (token,id) => {
+export const getUserInfo = async (token, id) => {
   try {
-    const uri = id === undefined ? "/users/get-user" : "/users/get-user/"+id;
+    console.log(id);
+    const uri = id === undefined ? "/users/get-user" : "/users/get-user/" + id;
 
-    const res =await apiRequest({
-     url: uri,
-     token: token,
-     method: "POST",
+    const res = await apiRequest({
+      url: uri,
+      token: token,
+      method: "POST",
     });
-    
-    if(res?.message === "Authentication failed"){
+
+    if (res?.message === "Authentication failed") {
       localStorage.removeItem("user");
       window.alert("user session expired.Login again.");
       window.location.replace("/login");
     }
     return res?.user;
-  }catch(error){
+  } catch (error) {
     console.log(error);
   }
 };
 
-export const sendFriendRequest = async (token,id) => {
+export const sendFriendRequest = async (token, id) => {
   try {
     const res = await apiRequest({
-     url: "/users/friend-request",
-     token: token,
-     method: "POST",
-     data:{ RequestTo : id},
+      url: "/users/friend-request",
+      token: token,
+      method: "POST",
+      data: { RequestTo: id },
     });
     return;
-  }catch(error){
+  } catch (error) {
     console.log(error);
   }
 };
 
-export const viewUserProfile = async (token,id) => {
+export const viewUserProfile = async (token, id) => {
   try {
     const res = await apiRequest({
-     url: "/users/profile-view",
-     token: token,
-     method: "POST",
-     data : { id },
+      url: "/users/profile-view",
+      token: token,
+      method: "POST",
+      data: { id },
     });
     return;
-  }catch(error){
+  } catch (error) {
     console.log(error);
   }
 };
