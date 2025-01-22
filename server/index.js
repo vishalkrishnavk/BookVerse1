@@ -9,6 +9,9 @@ import helmet from "helmet";
 import dbConnection from "./dbConfig/index.js";
 import errorMiddleware from "./middleware/errorMiddleware.js";
 import router from "./routes/index.js";
+import authRoute from "./routes/authRoutes.js";
+import userRoute from "./routes/userRoutes.js";
+import postRoute from "./routes/postRoutes.js";
 
 const __dirname = path.resolve(path.dirname(""));
 
@@ -19,7 +22,6 @@ const app = express();
 app.use(express.static(path.join(__dirname, "views/build")));
 
 const PORT = process.env.PORT || 8800;
-
 dbConnection();
 
 app.use(helmet());
@@ -30,7 +32,18 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use(morgan("dev"));
-app.use(router);
+/* app.use(router); */
+
+app.use(`/auth`, authRoute); //auth/register
+app.use(`/users`, userRoute);
+app.use(`/posts`, postRoute);
+
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 
 //error middleware
 app.use(errorMiddleware);
