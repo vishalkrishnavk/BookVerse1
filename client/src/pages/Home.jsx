@@ -35,6 +35,7 @@ const Home = () => {
     formState: { errors },
   } = useForm();
 
+
   const handlePostSubmit = async (data) => {
     setPosting(true);
     setErrMsg("");
@@ -110,7 +111,8 @@ const Home = () => {
 
   const handleFriendRequest =async(id) => {
     try{
-      const res =await sendFriendRequest(user.token,id);
+      console.log(user.token)
+      await sendFriendRequest(user.token,id);
       await fetchFriendRequests();
     }catch(error){
       console.log(error);
@@ -145,7 +147,7 @@ const Home = () => {
     fetchPost();
     fetchFriendRequests();
     fetchSuggestedFriend();
-  },[]);
+  }, []);//changes i made
 
 
 

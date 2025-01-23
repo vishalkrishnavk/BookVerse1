@@ -248,7 +248,6 @@ export const friendRequest = async (req, res, next) => {
     const { userId } = req.body.user;
 
     const { requestTo } = req.body;
-
     const requestExist = await FriendRequest.findOne({
       requestFrom: userId,
       requestTo,

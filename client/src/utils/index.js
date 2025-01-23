@@ -1,5 +1,6 @@
 import axios from "axios";
 import { SetPosts } from "../redux/postSlice";
+import { data } from "react-router-dom";
 //import { user } from "../assets/data";
 
 const API_URL = "http://localhost:8800";
@@ -78,7 +79,7 @@ export const deletePost = async (id, token) => {
       token: token,
       method: "DELETE",
     });
-    return;
+    return res;
   } catch (error) {
     console.log(error);
   }
@@ -114,7 +115,8 @@ export const sendFriendRequest = async (token, id) => {
       method: "POST",
       data: { RequestTo: id },
     });
-    return;
+    console.log(res);
+    return ;
   } catch (error) {
     console.log(error);
   }
@@ -128,7 +130,7 @@ export const viewUserProfile = async (token, id) => {
       method: "POST",
       data: { id },
     });
-    return;
+    return res;
   } catch (error) {
     console.log(error);
   }

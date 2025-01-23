@@ -10,13 +10,13 @@ dotenv.config();
 const { AUTH_EMAIL, AUTH_PASSWORD, APP_URL } = process.env;
 
 const transporter = nodemailer.createTransport({
-  service: "gmail", // For Gmail
-  host:"smtp.gmail.com",
+  service: "outlook", // For Gmail
+  host:"smtp-mail.outlook.com",
   port:587,
   secure:false,
   auth: {
-    user: process.env.AUTH_EMAIL, // Using AUTH_EMAIL
-    pass: process.env.AUTH_PASSWORD, // Explicitly using AUTH_PASSWORD
+    user: AUTH_EMAIL, // Using AUTH_EMAIL
+    pass: AUTH_PASSWORD, // Explicitly using AUTH_PASSWORD
   },
 });
 export const sendVerificationEmail = async (user, res) => {
@@ -28,7 +28,7 @@ export const sendVerificationEmail = async (user, res) => {
 
   //   mail options
   const mailOptions = {
-    from: AUTH_EMAIL,
+    from:AUTH_EMAIL,
     to: email,
     subject: "Email Verification",
     html: `<div
@@ -54,32 +54,36 @@ export const sendVerificationEmail = async (user, res) => {
 
   try {
     const hashedToken = await hashString(token);
-
+  
+    // Create the verification record in the database
     const newVerifiedEmail = await Verification.create({
       userId: _id,
       token: hashedToken,
       createdAt: Date.now(),
-      expiresAt: Date.now() + 3600000,
+      expiresAt: Date.now() + 3600000, // Token expires in 1 hour
     });
-
+  
     if (newVerifiedEmail) {
-      transporter
-        .sendMail(mailOptions)
-        .then(() => {
-          res.status(201).send({
-            success: "PENDING",
-            message:"Verification email has been sent to your account. Check your email for further instructions.",
-          });
-        })
-        .catch((err) => {
-          console.log(err);
-          res.status(404).json({ message: "Something went wrong" });
+      try {
+        // Send the verification email
+        await transporter.sendMail(mailOptions);
+        console.log("Verification email sent");
+        res.status(201).send({
+          success: "PENDING",
+          message: "Verification email has been sent to your account. Check your email for further instructions.",
         });
+      } catch (err) {
+        console.error("Error sending email:", err);
+        res.status(404).json({ message: "Failed to send the verification email." });
+      }
+    } else {
+      res.status(500).json({ message: "Failed to save verification data in the database." });
     }
   } catch (error) {
-    console.log(error);
-    res.status(404).json({ message: "Something went wrong" });
+    console.error("Error during verification process:", error);
+    res.status(404).json({ message: "Something went wrong." });
   }
+  
 };
 
 export const resetPasswordLink = async (user, res) => {
