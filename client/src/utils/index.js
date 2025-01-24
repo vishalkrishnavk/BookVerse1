@@ -113,7 +113,7 @@ export const sendFriendRequest = async (token, id) => {
       url: "/users/friend-request",
       token: token,
       method: "POST",
-      data: { RequestTo: id },
+      data: { requestTo: id },
     });
     console.log(res);
     return ;

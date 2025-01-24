@@ -246,8 +246,8 @@ export const updateUser = async (req, res, next) => {
 export const friendRequest = async (req, res, next) => {
   try {
     const { userId } = req.body.user;
-
     const { requestTo } = req.body;
+
     const requestExist = await FriendRequest.findOne({
       requestFrom: userId,
       requestTo,

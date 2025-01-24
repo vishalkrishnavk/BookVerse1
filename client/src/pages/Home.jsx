@@ -241,7 +241,7 @@ const Home = () => {
                     onChange={(e) => setFile(e.target.files[0])}
                     className='hidden'
                     id='vgifUpload'
-                    accept='.gif'
+                    accept='.gif,mp3'
                   />
                   <BsFiletypeGif />
                   <span>Gif</span>
