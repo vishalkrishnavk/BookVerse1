@@ -271,7 +271,9 @@ export const commentPost = async (req, res, next) => {
     const newComment = new Comments({ comment, from, userId, postId: id });
 
     await newComment.save();
-
+    console.log(comment);
+    console.log(userId);
+    console.log( id );
     //updating the post with the comments id
     const post = await Posts.findById(id);
 

@@ -176,7 +176,7 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
       setReplyComments(0);
     const result = await getPostComments(id);
 
-    setComments(postComments);
+    setComments(result);//postComments
     setLoading(false);
   };
 
@@ -206,6 +206,7 @@ const PostCard = ({ post, user, deletePost, likePost }) => {
             <span className='text-ascent-2'>{post?.userId?.location}</span>
             <span className='md:hidden flex text-ascent-2 text-sm'>
             {moment(post?.createdAt ?? "2023-05-25").fromNow()}
+
           </span>
           </div>
 

@@ -21,7 +21,8 @@ const Profile = () => {
   const [userInfo, setUserInfo] = useState(user);
   const [loading, setLoading] = useState(false);
 
-  const uri="/posts/get-user-post"+id;
+  const uri = `/posts/get-user-post/${id}`;
+
 
   const getUser=async()=>{
     const res=await getUserInfo(user?.token,id);
@@ -46,6 +47,7 @@ const Profile = () => {
     getUser();
     getPosts();
   },[id]);
+
   return (
     <>
       <div className='home w-full px-0 lg:px-10 pb-20 2xl:px-40 bg-bgColor lg:rounded-lg h-screen overflow-hidden'>

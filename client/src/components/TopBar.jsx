@@ -10,7 +10,8 @@ import { IoMdNotificationsOutline } from "react-icons/io";
 import { SetTheme } from "../redux/theme";
 import { Logout } from "../redux/userSlice";
 import { fetchPosts } from "../utils";
-
+import { FaBook } from "react-icons/fa";
+import logo from "../assets/logo1.png";
 const TopBar = () => {
   const { theme } = useSelector((state) => state.theme);
   const { user } = useSelector((state) => state.user);
@@ -34,8 +35,12 @@ const TopBar = () => {
   return (
     <div className='topbar w-full flex items-center justify-between py-3 md:py-6 px-4 bg-primary'>
       <Link to='/' className='flex gap-2 items-center'>
-        <div className='p-1 md:p-2 bg-[#065ad8] rounded text-white'>
-          <TbSocial />
+      <div className='p-1 md:p-2'>
+          <img
+            src={logo} // Display custom logo
+            alt='BookVerse Logo'
+            className='w-12 h-12 object-contain'
+          />
         </div>
         <span className='text-xl md:text-2xl text-[#065ad8] font-semibold'>
           BookVerse

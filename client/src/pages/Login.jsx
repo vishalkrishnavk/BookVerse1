@@ -10,6 +10,7 @@ import { CustomButton, Loading, TextInput } from "../components";
 import { BgImage } from "../assets";
 import { apiRequest } from "../utils";
 import { UserLogin } from "../redux/userSlice";
+import logo from "../assets/logo1.png";
 
 const Login = () => {
   const [errMsg, setErrMsg] = useState("");
@@ -57,13 +58,20 @@ const Login = () => {
       <div className='w-full md:w-2/3 h-fit lg:h-full 2xl:h-5/6 py-8 lg:py-0 flex bg-primary rounded-xl overflow-hidden shadow-xl'>
         {/* LEFT */}
         <div className='w-full lg:w-1/2 h-full p-10 2xl:px-20 flex flex-col justify-center '>
-          <div className='w-full flex gap-2 items-center mb-6'>
-            <div className='p-2 bg-[#065ad8] rounded text-white'>
-              <TbSocial />
-            </div>
+        <div className='w-full flex flex-col items-center mb-6'>
+            <div className='p-1 md:p-2'>
+                      <img
+                        src={logo} // Display custom logo
+                        alt='BookVerse Logo'
+                        className='w-12 h-12 object-contain'
+                      />
+                    </div>
             <span className='text-2xl text-[#065ad8] font-semibold'>
               BookVerse
             </span>
+            <p className='text-sm text-gray-600 italic mt-1'>
+              "Where Readers Connect and Share Memories"
+            </p>
           </div>
 
           <p className='text-ascent-1 text-base font-semibold'>
@@ -164,6 +172,11 @@ const Login = () => {
               <AiOutlineInteraction />
               <span className='text-xs font-medium'>Interact</span>
             </div>
+            <div className='absolute flex items-center gap-1 bg-white right-12 bottom-0 py-2 px-5 rounded-full'>
+              <AiOutlineInteraction />
+              <span className='text-xs font-medium'>Shop</span>
+            </div>
+            
           </div>
 
           <div className='mt-16 text-center'>
