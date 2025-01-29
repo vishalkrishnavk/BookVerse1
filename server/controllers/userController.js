@@ -400,7 +400,7 @@ export const suggestedFriends = async (req, res) => {
     queryObject.friends = { $nin: userId };
 
     let queryResult = Users.find(queryObject)
-      .limit(15)
+      .limit(7)
       .select("firstName lastName profileUrl profession -password");
 
     const suggestedFriends = await queryResult;
