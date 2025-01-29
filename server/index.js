@@ -19,6 +19,15 @@ dotenv.config();
 
 const app = express();
 
+// Set up CORS before other middleware
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://172.20.185.203:3000"], 
+    credentials: true,
+  })
+);
+
+
 app.use(express.static(path.join(__dirname, "views/build")));
 
 const PORT = process.env.PORT || 8800;
@@ -38,16 +47,16 @@ app.use(`/auth`, authRoute); //auth/register
 app.use(`/users`, userRoute);
 app.use(`/posts`, postRoute);
 
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
-);
+// app.use(
+//   cors({
+//     origin: "http://localhost:3000",
+//     credentials: true,
+//   })
+// );
 
 //error middleware
 app.use(errorMiddleware);
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0',() => {
   console.log(`Server running on port: ${PORT}`);
 });
