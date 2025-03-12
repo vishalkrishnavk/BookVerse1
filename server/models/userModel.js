@@ -23,7 +23,33 @@ const userSchema = new mongoose.Schema(
       select: true,
     },
     location: { type: String },
-    profileUrl: { type: String },
+    profileUrl: {
+      type: String,
+      default: "https://cdn-icons-png.flaticon.com/128/3177/3177440.png",
+    },
+    role: {
+      type: String,
+      default: "user",
+      enum: ["user", "admin"],
+    },
+    favourites: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Book",
+      },
+    ],
+    cart: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Book",
+      },
+    ],
+    orders: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Order",
+      },
+    ],
     profession: { type: String },
     friends: [{ type: Schema.Types.ObjectId, ref: "Users" }],
     views: [{ type: String }],
