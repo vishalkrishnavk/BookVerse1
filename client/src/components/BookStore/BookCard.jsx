@@ -27,7 +27,9 @@ const BookCard = ({ image, title, author, price, bookid, fav }) => {
         <div className="w-full flex items-center justify-center bg-primary/40 rounded-lg">
           <img src={image} alt="book" className="h-40 object-cover" />
         </div>
-        <h1 className="mt-4 text-xl font-semibold text-ascent-1">{title}</h1>
+        <h1 className="mt-4 text-xl font-semibold text-ascent-1 line-clamp-2">
+          {title}
+        </h1>
         <p className="mt-2 text-ascent-2 font-medium">by {author}</p>
         <p className="mt-2 text-ascent-1 font-semibold text-xl">₹ {price}</p>
       </Link>
