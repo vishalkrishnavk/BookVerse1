@@ -17,6 +17,7 @@ import orderRoutes from "./routes/orderRoutes.js";
 import fav from "./routes/favouritesRoutes.js";
 import cartRoute from "./routes/cartRoute.js";
 import adminRoutes from "./routes/adminRoute.js";
+import messageRoutes from "./routes/messageRoutes.js";
 
 const __dirname = path.resolve(path.dirname(""));
 
@@ -54,6 +55,7 @@ app.use(`/order`, orderRoutes);
 app.use(`/favourites`, fav);
 app.use(`/cart`, cartRoute);
 app.use(`/admin`, adminRoutes);
+app.use("/messages", messageRoutes);
 
 //error middleware
 app.use(errorMiddleware);
