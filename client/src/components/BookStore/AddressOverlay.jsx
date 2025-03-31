@@ -16,8 +16,8 @@ const AddressOverlay = ({ address, onClose, onSubmit }) => {
     }
 
     try {
-      await dispatch(updateUserAddress(editedAddress)).unwrap();
-      onSubmit(editedAddress);
+      const result = await dispatch(updateUserAddress(editedAddress)).unwrap();
+      onSubmit(result.address); // Pass the updated address from the response
       onClose();
     } catch (error) {
       toast.error(error.message || "Failed to update address");

@@ -57,35 +57,14 @@ const Cart = () => {
       console.log(error);
     }
   };
-  /* const makePayment = async () => {
-    const body = {
-      products: Cart,
-    };
-
-    const res = await axiosInstance.post(
-      "/order/create-checkout-session",
-      body,
-      { headers: { "Content-Type": "application/json" } }
-    );
-    const session = await stripe.redirectToCheckout({
-      sessionId: res.data.id,
-    });
-
-    if (session.error) {
-      toast.error(session.error);
-    }
-  }; */
   const Overlay = () => {
     setShowAddressOverlay(true);
   };
-  const PlaceOrder = async () => {
-    /* setShowAddressOverlay(true);
-    return; */
-
+  const PlaceOrder = async (addressToUse) => {
     try {
       setIsProcessing(true);
       const stripe = await loadStripe(
-        "pk_test_51R8jwPQYmy7MHXJi3XoSSF1p8PYKk45Bgfp5uCEZexBqPMzyaKUvFgZvZOONd7oGJBeOZxZvxDLfUjB4iF1n8QRy005Il9OkKD"
+        `${process.env.REACT_APP_STRIPE_PUB_KEY}`
       );
 
       if (!stripe) {
@@ -96,7 +75,7 @@ const Cart = () => {
         `/order/place-order`,
         {
           order: Cart,
-          address: userAddress,
+          address: addressToUse || userAddress,
         },
         { headers }
       );
@@ -116,9 +95,9 @@ const Cart = () => {
     }
   };
 
-  const handleAddressSubmit = (newAddress) => {
+  const handleAddressSubmit = async (newAddress) => {
     setUserAddress(newAddress);
-    PlaceOrder();
+    await PlaceOrder(newAddress);
   };
 
   return (

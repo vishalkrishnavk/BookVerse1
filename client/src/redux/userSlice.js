@@ -86,8 +86,6 @@ const userSlice = createSlice({
     });
   },
 });
-
-// ** Connect to WebSocket **
 export const connectSocket = () => (dispatch, getState) => {
   const { user } = getState().user;
 
@@ -102,7 +100,6 @@ export const connectSocket = () => (dispatch, getState) => {
   socket.connect();
 };
 
-// ** Disconnect WebSocket **
 export const disconnectSocket = () => (dispatch, getState) => {
   closeSocket();
   dispatch(userSlice.actions.setOnlineUsers([]));

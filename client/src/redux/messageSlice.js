@@ -31,7 +31,6 @@ export const getUsers = createAsyncThunk(
   }
 );
 
-// **Async thunk for fetching messages of selected user**
 export const getMessages = createAsyncThunk(
   "messages/getMessages",
   async (userId, { rejectWithValue }) => {
@@ -65,14 +64,14 @@ export const markMessageAsRead = createAsyncThunk(
     try {
       await axiosInstance.put(
         `/messages/mark-as-read/${userId}`,
-        {}, // empty body
+        {},
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
-      dispatch(getUsers()); // Refresh users list to update unread status
+      dispatch(getUsers());
       return { userId };
     } catch (error) {
       console.error("Error in marking messages as read:", error);
@@ -83,7 +82,6 @@ export const markMessageAsRead = createAsyncThunk(
   }
 );
 
-// **Async thunk for sending messages**
 export const sendMessage = createAsyncThunk(
   "messages/sendMessage",
   async ({ selectedUser, messageData }, { rejectWithValue }) => {
@@ -106,7 +104,6 @@ export const sendMessage = createAsyncThunk(
   }
 );
 
-// **Redux Slice**
 const messageSlice = createSlice({
   name: "messages",
   initialState,
@@ -117,14 +114,12 @@ const messageSlice = createSlice({
     newMessageReceived: (state, action) => {
       const newMessage = action.payload;
 
-      // If the message is from/to the selected user, add it to messages
       if (
         newMessage.senderId === state.selectedUser?._id ||
         newMessage.receiverId === state.selectedUser?._id
       ) {
         state.messages.push(newMessage);
       } else {
-        // Mark the sender as having unread messages
         state.users = state.users.map((user) =>
           user._id === newMessage.senderId
             ? { ...user, hasUnreadMessages: true }
@@ -139,25 +134,7 @@ const messageSlice = createSlice({
       );
     },
   },
-  /* connectToMessages: (state, action) => {
-      socket.on("newMessage", (newMessage) => {
-        action.payload.dispatch(
-          messageSlice.actions.newMessageReceived(newMessage)
-        );
-      });
 
-      socket.on("messagesRead", ({ userId }) => {
-        action.payload.dispatch(messageSlice.actions.messagesRead({ userId }));
-      });
-    },
-    disconnectFromMessages: (state) => {
-      if (socket) {
-        socket.off("newMessage");
-        socket.off("messagesRead");
-        socket.disconnect();
-        socket = null;
-      }
-    }, */
   extraReducers: (builder) => {
     builder
       .addCase(getUsers.pending, (state) => {
@@ -176,7 +153,6 @@ const messageSlice = createSlice({
       .addCase(getMessages.fulfilled, (state, action) => {
         state.isGettingMessages = false;
         state.messages = action.payload.messages;
-        // Update users list to mark messages as read
         state.users = state.users.map((user) =>
           user._id === action.payload.userId
             ? { ...user, hasUnreadMessages: false }

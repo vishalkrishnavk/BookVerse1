@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { TbSocial } from "react-icons/tb";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useLocation } from "react-router-dom"; // Add useLocation
-import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import TextInput from "./TextInput";
 import CustomButton from "./CustomButton";
 import { useForm } from "react-hook-form";
@@ -11,18 +10,18 @@ import { IoMdNotificationsOutline } from "react-icons/io";
 import { SetTheme } from "../redux/theme";
 import { logout } from "../redux/userSlice";
 import { fetchPosts } from "../utils";
-import { FaBook } from "react-icons/fa";
 import logo from "../assets/logo1.png";
+import { RiMenu3Fill, RiCloseFill } from "react-icons/ri";
+
 const TopBar = () => {
   const { theme } = useSelector((state) => state.theme);
   const { user, role, isLoggedIn } = useSelector((state) => state.user);
-  const [Nav, setNav] = useState("hidden");
+  const [mobileMenu, setMobileMenu] = useState(false);
   const dispatch = useDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const isHomePage = location.pathname === "/";
-
-  let links = [
+  const baseLinks = [
     {
       title: "Book Store",
       link: "/bookstore",
@@ -33,153 +32,159 @@ const TopBar = () => {
     },
   ];
 
-  if (isLoggedIn) {
-    if (role === "admin") {
-      links.push({
-        title: "Admin Profile",
-        link: "/profile",
-      });
-    } else {
-      links.push(
-        {
-          title: "Cart",
-          link: "/cart",
-        },
-        {
-          title: "Profile",
-          link: "/profile",
-        }
-      );
-    }
-  }
+  const getLinks = () => {
+    let currentLinks = [...baseLinks];
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
+    if (isLoggedIn) {
+      if (role === "admin") {
+        currentLinks.push({
+          title: "Admin Profile",
+          link: "/profile",
+        });
+      } else {
+        currentLinks.push(
+          {
+            title: "Cart",
+            link: "/cart",
+          },
+          {
+            title: "Profile",
+            link: "/profile",
+          }
+        );
+      }
+    }
+    return currentLinks;
+  };
+
+  const [links, setLinks] = useState(getLinks());
+
+  useEffect(() => {
+    setLinks(getLinks());
+  }, [isLoggedIn, role]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("id");
+
+    if (!token || !userId) {
+      dispatch(logout());
+    }
+  }, [location.pathname]);
 
   const handleTheme = () => {
     const themeValue = theme === "light" ? "dark" : "light";
-
     dispatch(SetTheme(themeValue));
   };
 
-  const handleSearch = async (data) => {
-    await fetchPosts(user.token, dispatch, "", data);
+  const handleLogout = () => {
+    dispatch(logout());
+    setMobileMenu(false);
+    navigate("/");
   };
 
   return (
-    <>
+    <div className="relative">
       <div className="topbar w-full flex items-center justify-between py-3 md:py-6 px-4 bg-primary">
+        {/* Logo */}
         <Link to="/" className="flex gap-2 items-center">
           <div className="p-1 md:p-2">
             <img
-              src={logo} // Display custom logo
+              src={logo}
               alt="BookVerse Logo"
-              className="w-12 h-12 object-contain"
+              className="w-8 h-8 md:w-12 md:h-12 object-contain"
             />
           </div>
-          <span className="text-xl md:text-2xl text-[#065ad8] font-semibold">
+          <span className="text-lg md:text-2xl text-[#065ad8] font-semibold">
             BookVerse
           </span>
         </Link>
 
-        {/* Only show search form on Home page */}
-        {isHomePage && (
-          <form
-            className="hidden md:flex items-center justify-center"
-            onSubmit={handleSubmit(handleSearch)}
-          >
-            <TextInput
-              placeholder="Search..."
-              styles="w-[18rem] lg:w-[38rem]  rounded-l-full py-3"
-              register={register("search")}
-            />
-            <CustomButton
-              title="Search"
-              type="submit"
-              containerStyles="bg-[#0444a4] text-white px-6 py-2.5 mt-2 rounded-r-full"
-            />
-          </form>
-        )}
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-4 text-ascent-1">
+          {links.map((item, i) => (
+            <Link
+              key={i}
+              to={item.link}
+              className={`${
+                item.title === "Profile" || item.title === "Admin Profile"
+                  ? "border border-blue px-3 py-1 rounded hover:bg-secondary"
+                  : "hover:text-blue"
+              } transition-all duration-300`}
+            >
+              {item.title}
+            </Link>
+          ))}
+        </div>
 
-        {/* ICONS */}
-        <div className="flex gap-4 items-center text-ascent-1 text-md md:text-xl">
-          <button onClick={() => handleTheme()}>
-            {theme ? <BsMoon /> : <BsSunFill />}
+        {/* Desktop Right Section */}
+        <div className="hidden md:flex items-center gap-4 text-ascent-1">
+          <button onClick={handleTheme} className="text-xl">
+            {theme === "light" ? <BsMoon /> : <BsSunFill />}
           </button>
-          <Link to="/messages">
-            <div className="hidden lg:flex">
-              <IoMdNotificationsOutline />
-            </div>
+
+          <Link to="/messages" className="text-xl">
+            <IoMdNotificationsOutline />
           </Link>
 
           {isLoggedIn && (
-            <div>
-              <CustomButton
-                onClick={() => dispatch(logout())}
-                title="Log Out"
-                containerStyles="text-sm text-ascent-1 px-4 md:px-6 py-1 md:py-2 border border-[#666] rounded-full"
-              />
-            </div>
+            <CustomButton
+              onClick={handleLogout}
+              title="Log Out"
+              containerStyles="text-sm text-ascent-1 px-4 py-1 border border-[#666] rounded-full"
+            />
           )}
+        </div>
 
-          <div className=" w-1/6 block ">
-            <button
-              className="block border-0 bg-transparent px-2  hover:no-underline hover:shadow-none focus:no-underline focus:shadow-none focus:outline-none focus:ring-0"
-              type="button"
-              onClick={() => setNav(Nav === "hidden" ? "block" : "hidden")}
-            >
-              <span className="[&>svg]:w-7 [&>svg]:stroke-white ">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M3 6.75A.75.75 0 013.75 6h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 6.75zM3 12a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75A.75.75 0 013 12zm0 5.25a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z" />
-                </svg>
-              </span>
-            </button>
-          </div>
+        {/* Mobile Menu Button */}
+        <button
+          className="md:hidden text-2xl text-ascent-1"
+          onClick={() => setMobileMenu(!mobileMenu)}
+        >
+          {mobileMenu ? <RiCloseFill /> : <RiMenu3Fill />}
+        </button>
+      </div>
+
+      {/* Mobile Menu */}
+      <div
+        className={`${
+          mobileMenu ? "flex" : "hidden"
+        } md:hidden flex-col absolute top-full left-0 w-full bg-primary py-4 px-4 gap-4 shadow-lg z-50`}
+      >
+        {links.map((item, i) => (
+          <Link
+            key={i}
+            to={item.link}
+            onClick={() => setMobileMenu(false)}
+            className={`${
+              item.title === "Profile" || item.title === "Admin Profile"
+                ? "border border-blue px-3 py-2 rounded text-center hover:bg-secondary"
+                : "hover:text-blue"
+            } text-ascent-1 transition-all duration-300`}
+          >
+            {item.title}
+          </Link>
+        ))}
+
+        <div className="flex items-center justify-between pt-4 border-t border-ascent-2/20">
+          <button onClick={handleTheme} className="text-xl text-ascent-1">
+            {theme === "light" ? <BsMoon /> : <BsSunFill />}
+          </button>
+
+          <Link to="/messages" className="text-xl text-ascent-1">
+            <IoMdNotificationsOutline />
+          </Link>
+
+          {isLoggedIn && (
+            <CustomButton
+              onClick={handleLogout}
+              title="Log Out"
+              containerStyles="text-sm text-ascent-1 px-4 py-1 border border-[#666] rounded-full"
+            />
+          )}
         </div>
       </div>
-      <div className={`5/6 ${Nav} bg-primary text-ascent-1 px-12`}>
-        <div className="flex flex-col items-center">
-          {links.map((items, i) => (
-            <>
-              {items.title === "Profile" || items.title === "Admin Profile" ? (
-                <div
-                  className="rounded hover:cursor-pointer border border-blue px-3 py-1 my-3 hover:bg-secondary hover:text-ascent-1 transition-all duration-300"
-                  key={i}
-                >
-                  <Link
-                    to={`${items.link}`}
-                    className="text-normal"
-                    onClick={() => setNav("hidden")}
-                  >
-                    {items.title}
-                  </Link>
-                </div>
-              ) : (
-                <div
-                  className="mx-3 hover:text-blue rounded transition-all duration-300 hover:cursor-pointer my-3"
-                  key={i}
-                >
-                  <Link
-                    to={`${items.link}`}
-                    className="text-normal"
-                    onClick={() => setNav("hidden")}
-                  >
-                    {items.title}{" "}
-                  </Link>
-                </div>
-              )}
-            </>
-          ))}
-        </div>
-      </div>
-    </>
+    </div>
   );
 };
 
