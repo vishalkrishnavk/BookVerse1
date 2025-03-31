@@ -56,7 +56,7 @@ export const sendMessage = async (req, res) => {
   try {
     const { text, image } = req.body;
     const { id: recieverId } = req.params;
-    const { senderId } = req.body.user;
+    const { userId: senderId } = req.body.user;
 
     /* let imgUrl;
     if (image) {
@@ -73,31 +73,46 @@ export const sendMessage = async (req, res) => {
     await newMessage.save();
 
     const recieverSocketId = getSocketId(recieverId);
-    io.to(recieverSocketId).emit("newMessage", newMessage);
+    if (recieverSocketId) {
+      io.to(recieverSocketId).emit("newMessage", newMessage);
+    }
 
     res.status(201).json(newMessage);
   } catch (error) {
     console.log("Error sendMessages", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
 export const markMsgAsRead = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { currentUserId } = req.body.user;
+    const { userId } = req.params; // sender's ID
+    const { userId: currentUserId } = req.body.user; // current user's ID (receiver)
 
-    await Message.updateMany(
-      { senderId: userId, recieverId: currentUserId, isRead: false },
+    if (!userId || !currentUserId) {
+      return res.status(400).json({ message: "Invalid user IDs" });
+    }
+
+    const result = await Message.updateMany(
+      {
+        senderId: userId,
+        recieverId: currentUserId,
+        isRead: false,
+      },
       { isRead: true }
     );
 
     const senderSocketId = getSocketId(userId);
-    io.to(senderSocketId).emit("messagesRead", { userId: currentUserId });
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("messagesRead", { userId: currentUserId });
+    }
 
-    res.status(200).json({ message: "Messages marked as read" });
+    res.status(200).json({
+      message: "Messages marked as read",
+      modifiedCount: result.modifiedCount,
+    });
   } catch (error) {
-    console.log("Error in markes as read");
-    res.status(500).json({ message: "Internal server errror" });
+    console.log("Error in marking as read:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
