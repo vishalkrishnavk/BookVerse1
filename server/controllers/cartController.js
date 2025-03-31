@@ -38,9 +38,38 @@ export const viewCart = async (req, res) => {
   try {
     const user = await User.findById(id).populate("cart");
     const cart = user.cart.slice().reverse();
-    return res.status(200).json({ cart });
+    return res.status(200).json({ cart, address: user.address });
   } catch (error) {
     console.log("Error in viewing cart", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateAddress = async (req, res) => {
+  const { userId } = req.body.user;
+  const { address } = req.body;
+
+  try {
+    if (!address) {
+      return res.status(400).json({ message: "Address is required" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { address },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      message: "Address updated successfully",
+      address: user.address,
+    });
+  } catch (error) {
+    console.log("Error in updating address", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };

@@ -1,10 +1,11 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { user } from "../assets/data";
 import {
   connectSocket as initSocket,
   getSocket,
   disconnectSocket as closeSocket,
 } from "../utils/socketService";
+import { axiosInstance } from "../lib/axiosConfig";
 
 const URL =
   process.env.NODE_ENV === "development" ? "http://localhost:8800" : "/";
@@ -16,6 +17,29 @@ const initialState = {
   role: localStorage.getItem("role") || "user",
   onlineUsers: [],
 };
+
+export const updateUserAddress = createAsyncThunk(
+  "user/updateAddress",
+  async (address, { rejectWithValue }) => {
+    try {
+      const headers = {
+        authorization: `Bearer ${localStorage.getItem("token")}`,
+      };
+
+      const response = await axiosInstance.put(
+        "/cart/update-address",
+        { address },
+        { headers }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to update address"
+      );
+    }
+  }
+);
 
 const userSlice = createSlice({
   name: "user",
@@ -55,6 +79,11 @@ const userSlice = createSlice({
     setOnlineUsers(state, action) {
       state.onlineUsers = action.payload;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(updateUserAddress.fulfilled, (state, action) => {
+      state.user.address = action.payload.address;
+    });
   },
 });
 

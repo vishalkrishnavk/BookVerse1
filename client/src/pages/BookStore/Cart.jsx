@@ -5,12 +5,16 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Loading from "./../../components/Loading.jsx";
 import toast from "react-hot-toast";
+import AddressOverlay from "../../components/BookStore/AddressOverlay";
+
 const Cart = () => {
   const navigate = useNavigate();
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
   const history = useNavigate();
   const [Cart, setCart] = useState();
   const [Total, setTotal] = useState(0);
+  const [showAddressOverlay, setShowAddressOverlay] = useState(false);
+  const [userAddress, setUserAddress] = useState("");
   const headers = {
     id: localStorage.getItem("id"),
     authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -24,6 +28,7 @@ const Cart = () => {
           headers,
         });
         setCart(res.data.cart);
+        setUserAddress(res.data.address);
       };
       fetch();
     }
@@ -51,19 +56,32 @@ const Cart = () => {
     }
   };
   const PlaceOrder = async () => {
-    console.log(Cart);
+    if (!userAddress.trim()) {
+      setShowAddressOverlay(true);
+      return;
+    }
     try {
       const response = await axiosInstance.post(
         `/order/place-order`,
-        { order: Cart },
+        {
+          order: Cart,
+          address: userAddress,
+        },
         { headers }
       );
-      toast.success("Order Placed Suceesfully");
+      toast.success("Order Placed Successfully");
       navigate("/profile/orderHistory");
     } catch (error) {
       console.log(error);
+      toast.error(error.response?.data?.message || "Failed to place order");
     }
   };
+
+  const handleAddressSubmit = (newAddress) => {
+    setUserAddress(newAddress);
+    PlaceOrder();
+  };
+
   return (
     <div className="min-h-screen bg-bgColor px-12 py-8">
       {!Cart && <Loading />}
@@ -144,6 +162,13 @@ const Cart = () => {
             </div>
           </div>
         </div>
+      )}
+      {showAddressOverlay && (
+        <AddressOverlay
+          address={userAddress}
+          onClose={() => setShowAddressOverlay(false)}
+          onSubmit={handleAddressSubmit}
+        />
       )}
     </div>
   );

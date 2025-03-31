@@ -30,7 +30,7 @@ const SeeUserData = ({ userDivData, userDiv, setuserDiv }) => {
           <div className="mt-4">
             <label htmlFor="">
               Address :{" "}
-              <span className="font-semibold">{userDivData.location}</span>
+              <span className="font-semibold">{userDivData.address}</span>
             </label>
           </div>
         </div>
