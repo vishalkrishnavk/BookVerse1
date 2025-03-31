@@ -5,15 +5,29 @@ const orderSchema = new mongoose.Schema(
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Users",
+      required: true,
     },
     books: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Book",
+      required: true,
     },
     status: {
       type: String,
-      default: "Order Placed",
       enum: ["Order Placed", "Delivered", "Canceled"],
+      default: "Order Placed",
+    },
+    mode: {
+      type: String,
+      default: "Online",
+    },
+    address: {
+      type: String,
+      required: true,
+    },
+    paymentId: {
+      type: String,
+      required: true,
     },
   },
   { timestamps: true }

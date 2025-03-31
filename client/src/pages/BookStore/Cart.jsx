@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import Loading from "./../../components/Loading.jsx";
 import toast from "react-hot-toast";
 import AddressOverlay from "../../components/BookStore/AddressOverlay";
+import { loadStripe } from "@stripe/stripe-js";
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const Cart = () => {
   const [Total, setTotal] = useState(0);
   const [showAddressOverlay, setShowAddressOverlay] = useState(false);
   const [userAddress, setUserAddress] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
   const headers = {
     id: localStorage.getItem("id"),
     authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -55,12 +57,41 @@ const Cart = () => {
       console.log(error);
     }
   };
-  const PlaceOrder = async () => {
-    if (!userAddress.trim()) {
-      setShowAddressOverlay(true);
-      return;
+  /* const makePayment = async () => {
+    const body = {
+      products: Cart,
+    };
+
+    const res = await axiosInstance.post(
+      "/order/create-checkout-session",
+      body,
+      { headers: { "Content-Type": "application/json" } }
+    );
+    const session = await stripe.redirectToCheckout({
+      sessionId: res.data.id,
+    });
+
+    if (session.error) {
+      toast.error(session.error);
     }
+  }; */
+  const Overlay = () => {
+    setShowAddressOverlay(true);
+  };
+  const PlaceOrder = async () => {
+    /* setShowAddressOverlay(true);
+    return; */
+
     try {
+      setIsProcessing(true);
+      const stripe = await loadStripe(
+        "pk_test_51R8jwPQYmy7MHXJi3XoSSF1p8PYKk45Bgfp5uCEZexBqPMzyaKUvFgZvZOONd7oGJBeOZxZvxDLfUjB4iF1n8QRy005Il9OkKD"
+      );
+
+      if (!stripe) {
+        throw new Error("Stripe failed to load");
+      }
+
       const response = await axiosInstance.post(
         `/order/place-order`,
         {
@@ -69,11 +100,19 @@ const Cart = () => {
         },
         { headers }
       );
-      toast.success("Order Placed Successfully");
-      navigate("/profile/orderHistory");
+
+      const result = await stripe.redirectToCheckout({
+        sessionId: response.data.id,
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
     } catch (error) {
-      console.log(error);
-      toast.error(error.response?.data?.message || "Failed to place order");
+      console.error(error);
+      toast.error(error.message || "Failed to place order");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -154,10 +193,15 @@ const Cart = () => {
             </div>
             <div className="w-[100%] mt-3">
               <button
-                className="bg-primary rounded px-4 py-2 flex justify-center w-full font-semibold hover:bg-primary/80 text-ascent-1"
-                onClick={PlaceOrder}
+                className={`bg-primary rounded px-4 py-2 flex justify-center w-full font-semibold ${
+                  isProcessing
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-primary/80"
+                } text-ascent-1`}
+                onClick={Overlay}
+                disabled={isProcessing}
               >
-                Place your order
+                {isProcessing ? "Processing..." : "Place your order"}
               </button>
             </div>
           </div>
