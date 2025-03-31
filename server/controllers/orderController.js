@@ -34,37 +34,63 @@ export const placeOrder = async (req, res) => {
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
-      success_url: `${process.env.FRONT_URL}payment-success`,
+      success_url: `${process.env.FRONT_URL}payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.FRONT_URL}payment-cancel`,
       metadata: {
-        userId,
-        address,
-        orderIds: JSON.stringify(order.map((item) => item._id)),
+        userId: userId,
       },
     });
 
-    const orderPromises = order.map(async (orderData) => {
-      const newOrder = new Order({
+    // Create pending orders
+    await Order.create(
+      order.map((orderData) => ({
         user: userId,
         books: orderData._id,
-        status: "Order Placed",
+        status: "Payment Pending",
         address,
         paymentId: session.id,
         mode: "Online",
-      });
-      return newOrder.save();
-    });
-
-    await Promise.all(orderPromises);
-
-    await User.findByIdAndUpdate(userId, { $set: { cart: [] } });
+      }))
+    );
 
     return res.status(200).json({
       id: session.id,
-      message: "Order placed successfully",
+      message: "Checkout session created",
     });
   } catch (error) {
     console.error("Error in placeOrder:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const verifyPayment = async (req, res) => {
+  try {
+    const { session_id } = req.query;
+    const { userId } = req.body.user;
+
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+
+    if (session.payment_status === "paid") {
+      await Order.updateMany(
+        { paymentId: session_id },
+        { $set: { status: "Order Placed" } }
+      );
+
+      await User.findByIdAndUpdate(userId, { $set: { cart: [] } });
+
+      return res.status(200).json({
+        success: true,
+        message: "Payment successful and orders confirmed",
+      });
+    } else {
+      await Order.deleteMany({ paymentId: session_id });
+      return res.status(400).json({
+        success: false,
+        message: "Payment verification failed",
+      });
+    }
+  } catch (error) {
+    console.error("Error verifying payment:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -73,7 +99,6 @@ export const orderHistory = async (req, res) => {
   try {
     const { userId } = req.body.user;
 
-    // Find all orders for the user and populate the books details
     const orders = await Order.find({ user: userId })
       .populate("books")
       .sort({ createdAt: -1 });

@@ -1,49 +1,65 @@
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { FaCheckCircle } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { axiosInstance } from "../../lib/axiosConfig.js";
+import Loading from "../../components/Loading";
+import toast from "react-hot-toast";
 
 const PaymentSuccess = () => {
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [verifying, setVerifying] = useState(true);
 
   useEffect(() => {
-    // Clear cart from localStorage or Redux if needed
-    const timer = setTimeout(() => {
-      navigate("/profile/orderHistory");
-    }, 5000);
+    const verifyPayment = async () => {
+      try {
+        const sessionId = searchParams.get("session_id");
+        if (!sessionId) {
+          toast.error("Invalid payment session");
+          navigate("/cart");
+          return;
+        }
 
-    return () => clearTimeout(timer);
-  }, [navigate]);
+        const headers = {
+          id: localStorage.getItem("id"),
+          authorization: `Bearer ${localStorage.getItem("token")}`,
+        };
 
-  return (
-    <div className="min-h-screen bg-bgColor flex items-center justify-center">
-      <div className="bg-secondary p-8 rounded-lg shadow-lg text-center max-w-md w-full mx-4">
-        <div className="flex justify-center mb-6">
-          <FaCheckCircle className="text-green-500 text-6xl" />
-        </div>
-        <h1 className="text-3xl font-bold text-ascent-1 mb-4">
-          Payment Successful!
-        </h1>
-        <p className="text-ascent-2 mb-6">
-          Thank you for your purchase. Your order has been successfully
-          processed.
-        </p>
-        <div className="space-y-4">
-          <button
-            onClick={() => navigate("/profile/orderHistory")}
-            className="w-full bg-primary text-ascent-1 py-2 rounded hover:bg-primary/80 transition-colors"
-          >
-            View Order History
-          </button>
-          <button
-            onClick={() => navigate("/all-books")}
-            className="w-full bg-blue/10 text-blue py-2 rounded hover:bg-blue/20 transition-colors"
-          >
-            Continue Shopping
-          </button>
+        const response = await axiosInstance.get(
+          `/order/verify-payment?session_id=${sessionId}`,
+          { headers }
+        );
+
+        if (response.data.success) {
+          toast.success("Payment successful! Your order has been placed.");
+          navigate("/order-history");
+        } else {
+          toast.error("Payment verification failed");
+          navigate("/cart");
+        }
+      } catch (error) {
+        console.error("Payment verification error:", error);
+        toast.error("Failed to verify payment");
+        navigate("/cart");
+      } finally {
+        setVerifying(false);
+      }
+    };
+
+    verifyPayment();
+  }, [navigate, searchParams]);
+
+  if (verifying) {
+    return (
+      <div className="min-h-screen bg-bgColor flex items-center justify-center">
+        <div className="text-center">
+          <Loading />
+          <p className="text-ascent-1 mt-4">Verifying your payment...</p>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return null;
 };
 
 export default PaymentSuccess;
