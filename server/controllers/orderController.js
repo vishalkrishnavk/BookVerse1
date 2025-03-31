@@ -17,21 +17,19 @@ export const placeOrder = async (req, res) => {
       return res.status(400).json({ message: "Delivery address is required" });
     }
 
-    // Create line items for Stripe
     const lineItems = order.map((item) => ({
       price_data: {
         currency: "inr",
         product_data: {
           name: item.title,
-          description: item.desc.substring(0, 100), // Add description
-          images: [item.url], // Add book image
+          description: item.desc.substring(0, 100),
+          images: [item.url],
         },
-        unit_amount: Math.round(item.price * 100), // Ensure proper conversion to cents
+        unit_amount: Math.round(item.price * 100),
       },
       quantity: 1,
     }));
 
-    // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
@@ -45,7 +43,6 @@ export const placeOrder = async (req, res) => {
       },
     });
 
-    // Create orders in pending state
     const orderPromises = order.map(async (orderData) => {
       const newOrder = new Order({
         user: userId,
@@ -60,7 +57,6 @@ export const placeOrder = async (req, res) => {
 
     await Promise.all(orderPromises);
 
-    // Clear the user's cart after successful order creation
     await User.findByIdAndUpdate(userId, { $set: { cart: [] } });
 
     return res.status(200).json({
