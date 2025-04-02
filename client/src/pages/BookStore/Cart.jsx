@@ -5,12 +5,18 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Loading from "./../../components/Loading.jsx";
 import toast from "react-hot-toast";
+import AddressOverlay from "../../components/BookStore/AddressOverlay";
+import { loadStripe } from "@stripe/stripe-js";
+
 const Cart = () => {
   const navigate = useNavigate();
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
   const history = useNavigate();
   const [Cart, setCart] = useState();
   const [Total, setTotal] = useState(0);
+  const [showAddressOverlay, setShowAddressOverlay] = useState(false);
+  const [userAddress, setUserAddress] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
   const headers = {
     id: localStorage.getItem("id"),
     authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -24,6 +30,7 @@ const Cart = () => {
           headers,
         });
         setCart(res.data.cart);
+        setUserAddress(res.data.address);
       };
       fetch();
     }
@@ -50,20 +57,49 @@ const Cart = () => {
       console.log(error);
     }
   };
-  const PlaceOrder = async () => {
-    console.log(Cart);
+  const Overlay = () => {
+    setShowAddressOverlay(true);
+  };
+  const PlaceOrder = async (addressToUse) => {
     try {
+      setIsProcessing(true);
+      const stripe = await loadStripe(
+        `${process.env.REACT_APP_STRIPE_PUB_KEY}`
+      );
+
+      if (!stripe) {
+        throw new Error("Stripe failed to load");
+      }
+
       const response = await axiosInstance.post(
         `/order/place-order`,
-        { order: Cart },
+        {
+          order: Cart,
+          address: addressToUse || userAddress,
+        },
         { headers }
       );
-      toast.success("Order Placed Suceesfully");
-      navigate("/profile/orderHistory");
+
+      const result = await stripe.redirectToCheckout({
+        sessionId: response.data.id,
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      toast.error(error.message || "Failed to place order");
+    } finally {
+      setIsProcessing(false);
     }
   };
+
+  const handleAddressSubmit = async (newAddress) => {
+    setUserAddress(newAddress);
+    await PlaceOrder(newAddress);
+  };
+
   return (
     <div className="min-h-screen bg-bgColor px-12 py-8">
       {!Cart && <Loading />}
@@ -136,14 +172,26 @@ const Cart = () => {
             </div>
             <div className="w-[100%] mt-3">
               <button
-                className="bg-primary rounded px-4 py-2 flex justify-center w-full font-semibold hover:bg-primary/80 text-ascent-1"
-                onClick={PlaceOrder}
+                className={`bg-primary rounded px-4 py-2 flex justify-center w-full font-semibold ${
+                  isProcessing
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-primary/80"
+                } text-ascent-1`}
+                onClick={Overlay}
+                disabled={isProcessing}
               >
-                Place your order
+                {isProcessing ? "Processing..." : "Place your order"}
               </button>
             </div>
           </div>
         </div>
+      )}
+      {showAddressOverlay && (
+        <AddressOverlay
+          address={userAddress}
+          onClose={() => setShowAddressOverlay(false)}
+          onSubmit={handleAddressSubmit}
+        />
       )}
     </div>
   );

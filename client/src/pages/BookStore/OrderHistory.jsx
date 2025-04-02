@@ -2,24 +2,29 @@ import React, { useEffect, useState } from "react";
 import Loading from "./../../components/Loading.jsx";
 import { axiosInstance } from "../../lib/axiosConfig.js";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+
 const OrderHistory = () => {
   const [OrderHist, setOrderHist] = useState();
   const headers = {
     id: localStorage.getItem("id"),
     authorization: `Bearer ${localStorage.getItem("token")}`,
   };
-  useEffect(() => {
-    const fetch = async () => {
-      const res = await axiosInstance.get("/order/", {
-        headers,
-      });
 
-      setOrderHist(res.data.ordersData);
-      console.log(res);
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const res = await axiosInstance.get("/order/", {
+          headers,
+        });
+        setOrderHist(res.data.ordersData);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+        toast.error("Failed to fetch order history");
+      }
     };
-    fetch();
+    fetchOrders();
   }, []);
-  console.log(OrderHist);
 
   return (
     <div className="min-h-screen bg-bgColor">
@@ -63,46 +68,55 @@ const OrderHistory = () => {
               <h1 className="">Mode</h1>
             </div>
           </div>
-          {OrderHist.map((items, i) => (
-            <div
-              key={i}
-              className="bg-primary w-full rounded py-2 px-4 flex gap-4 hover:bg-secondary transition-all duration-300 cursor-pointer"
-            >
-              <div className="w-[3%]">
-                <h1 className="text-center text-ascent-1">{i + 1}</h1>
+          {OrderHist.map((order, i) => {
+            // Check if books exists and has the required properties
+            if (!order.books) return null;
+
+            return (
+              <div
+                key={order._id || i}
+                className="bg-primary w-full rounded py-2 px-4 flex gap-4 hover:bg-secondary transition-all duration-300 cursor-pointer"
+              >
+                <div className="w-[3%]">
+                  <h1 className="text-center text-ascent-1">{i + 1}</h1>
+                </div>
+                <div className="w-[22%]">
+                  <Link
+                    to={`/view-book-details/${order.books._id}`}
+                    className="text-blue hover:text-blue/80"
+                  >
+                    {order.books.title}
+                  </Link>
+                </div>
+                <div className="w-[45%]">
+                  <h1 className="text-ascent-2">
+                    {order.books.desc
+                      ? `${order.books.desc.slice(0, 50)}...`
+                      : "No description available"}
+                  </h1>
+                </div>
+                <div className="w-[9%]">
+                  <h1 className="text-ascent-1">₹ {order.books.price}</h1>
+                </div>
+                <div className="w-[16%]">
+                  <h1 className="font-semibold">
+                    {order.status === "Order Placed" ? (
+                      <div className="text-yellow-500">{order.status}</div>
+                    ) : order.status === "Canceled" ? (
+                      <div className="text-red-500">{order.status}</div>
+                    ) : (
+                      <div className="text-green-500">{order.status}</div>
+                    )}
+                  </h1>
+                </div>
+                <div className="w-none md:w-[5%] hidden md:block">
+                  <h1 className="text-sm text-ascent-2">
+                    {order.mode || "Online"}
+                  </h1>
+                </div>
               </div>
-              <div className="w-[22%]">
-                <Link
-                  to={`/view-book-details/${items.books._id}`}
-                  className="text-blue hover:text-blue/80"
-                >
-                  {items.books.title}
-                </Link>
-              </div>
-              <div className="w-[45%]">
-                <h1 className="text-ascent-2">
-                  {items.books.desc.slice(0, 50)} ...
-                </h1>
-              </div>
-              <div className="w-[9%]">
-                <h1 className="text-ascent-1">₹ {items.books.price}</h1>
-              </div>
-              <div className="w-[16%]">
-                <h1 className="font-semibold">
-                  {items.status === "Order placed" ? (
-                    <div className="text-yellow-500">{items.status}</div>
-                  ) : items.status === "Canceled" ? (
-                    <div className="text-red-500">{items.status}</div>
-                  ) : (
-                    <div className="text-green-500">{items.status}</div>
-                  )}
-                </h1>
-              </div>
-              <div className="w-none md:w-[5%] hidden md:block">
-                <h1 className="text-sm text-ascent-2">COD</h1>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

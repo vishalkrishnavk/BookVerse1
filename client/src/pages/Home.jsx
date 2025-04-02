@@ -23,7 +23,7 @@ import {
   likePost,
   sendFriendRequest,
 } from "../utils";
-import { UserLogin } from "../redux/userSlice";
+import { login } from "../redux/userSlice";
 
 const Home = () => {
   const { user, edit } = useSelector((state) => state.user);
@@ -139,7 +139,7 @@ const Home = () => {
   const getUser = async () => {
     const res = await getUserInfo(user?.token);
     const newData = { token: user?.token, ...res };
-    dispatch(UserLogin(newData));
+    dispatch(login(newData));
   };
 
   useEffect(() => {

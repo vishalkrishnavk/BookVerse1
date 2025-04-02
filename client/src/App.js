@@ -12,6 +12,9 @@ import AddBook from "./pages/BookStore/AddBook";
 import UpdateBooks from "./pages/BookStore/UpdateBooks";
 import OrderHistory from "./pages/BookStore/OrderHistory";
 import { TopBar } from "./components";
+import ChatHome from "./components/Messages/ChatHome";
+import PaymentCancel from "./pages/BookStore/PaymentCancel";
+import PaymentSuccess from "./pages/BookStore/PaymentSuccess";
 
 function Layout() {
   const { user } = useSelector((state) => state.user);
@@ -39,6 +42,9 @@ function App() {
           <Route path="/profile/favourites" element={<Favourite />} />
           <Route path="/profile/orderHistory" element={<OrderHistory />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/messages" element={<ChatHome />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/payment-cancel" element={<PaymentCancel />} />
 
           {/* Admin Routes */}
           <Route
